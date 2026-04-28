@@ -16,7 +16,7 @@ export const createBlog = async (req, res) => {
             isPublished
         })
 
-        
+
         // If it can come until this point it means it is successfull 
         res.status(201).json(newBlog)
 
@@ -33,6 +33,20 @@ export const getBlogs = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ message: "Server Error! Blogs cannot be retrieved!" })
+    }
+}
+
+export const getBlogById = async (req, res) => {
+    try{
+        const id = req.params.id
+        const blog = await Blog.findById(id)
+        if(!blog){
+            return res.status(404).json({message: "Blog is not found"})
+        }
+        res.status(200).json(blog)
+
+    }catch(error){
+        res.status(500).json({message: "There is an error with server"})
     }
 }
 

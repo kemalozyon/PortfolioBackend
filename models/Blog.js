@@ -23,7 +23,7 @@ const blogSchema = new mongoose.Schema({
     },
     coverImageURL: {
         type: String,
-        default: "default-image.png"
+        default: ""
     },
     tags: {
         type: [String], // An string array of set ["React", "Tutorial", "WebDev"]
