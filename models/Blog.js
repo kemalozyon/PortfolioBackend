@@ -21,6 +21,10 @@ const blogSchema = new mongoose.Schema({
         type: String,
         required: [true, "Content cannot be empty"]
     },
+    coverImageURL: {
+        type: String,
+        default: "default-image.png"
+    },
     tags: {
         type: [String], // An string array of set ["React", "Tutorial", "WebDev"]
         default: []
