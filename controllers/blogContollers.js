@@ -16,7 +16,7 @@ export const createBlog = async (req, res) => {
             isPublished
         })
 
-
+        
         // If it can come until this point it means it is successfull 
         res.status(201).json(newBlog)
 
