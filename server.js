@@ -3,6 +3,7 @@ import dotenv from "dotenv"
 import connectDB from "./config/db.js"
 import blogRoute from "./routes/blogRoutes.js"
 import projectRoute from "./routes/projectRoutes.js"
+import authRoute from "./routes/authRoutes.js"
 
 // read the dotenv file
 dotenv.config()
@@ -17,6 +18,7 @@ app.use(express.json())
 
 app.use("/api/blogs", blogRoute)
 app.use("/api/projects", projectRoute)
+app.use("/api/auth", authRoute)
 
 app.get("/", (req, res) => {
     res.send("Personal web site")
