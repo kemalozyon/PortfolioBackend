@@ -1,4 +1,5 @@
 import Project from '../models/Project.js'
+import mongoose from 'mongoose'
 
 export const getProjects = async (req, res) => {
     try{
@@ -35,5 +36,81 @@ export const postProject = async (req, res) => {
         res.status(201).json(newProject)
     } catch (error) { 
         res.status(400).json({message: error.message})
+    }
+}
+
+
+// PUT /api/projects/:id
+export const updateProject = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid project ID" })
+        }
+
+        const {
+            title,
+            description,
+            markdownContent,
+            technologies,
+            githubLink,
+            liveDemoLink,
+            coverImageUrl,
+            isFeatured
+        } = req.body
+
+        const updatedData = {
+            title,
+            description,
+            markdownContent,
+            technologies,
+            githubLink,
+            liveDemoLink,
+            coverImageUrl,
+            isFeatured
+        }
+
+        // Remove undefined fields to avoid overwriting existing data
+        Object.keys(updatedData).forEach(
+            (key) => updatedData[key] === undefined && delete updatedData[key]
+        )
+
+        const updatedProject = await Project.findByIdAndUpdate(
+            id,
+            { $set: updatedData },
+            { new: true, runValidators: true }
+        )
+
+        if (!updatedProject) {
+            return res.status(404).json({ success: false, message: "Project not found" })
+        }
+
+        res.status(200).json({ success: true, data: updatedProject })
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
+    }
+}
+
+
+export const deleteProject = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid project ID" })
+        }
+
+        const deletedProject = await Project.findByIdAndDelete(id)
+
+        if (!deletedProject) {
+            return res.status(404).json({ success: false, message: "Project not found" })
+        }
+
+        res.status(200).json({ success: true, message: "Project deleted successfully" })
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message })
     }
 }
