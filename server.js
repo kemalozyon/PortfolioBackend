@@ -5,6 +5,7 @@ import blogRoute from "./routes/blogRoutes.js"
 import projectRoute from "./routes/projectRoutes.js"
 import authRoute from "./routes/authRoutes.js"
 import uploadRoutes from "./routes/uploadRoutes.js"
+import cors from "cors"
 
 // read the dotenv file
 dotenv.config()
@@ -16,6 +17,12 @@ const app = express()
 
 //In order to parse coming json files
 app.use(express.json())
+app.use(cors({
+    origin: [
+        "https://portfolio-frontend-two-lake.vercel.app/"
+    ],
+    credentials: true
+}))
 
 app.use("/api/blogs", blogRoute)
 app.use("/api/projects", projectRoute)
