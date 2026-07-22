@@ -92,7 +92,7 @@ export const updateProject = async (req, res) => {
         const updatedProject = await Project.findByIdAndUpdate(
             id,
             { $set: updatedData },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         )
 
         if (!updatedProject) {

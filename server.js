@@ -32,7 +32,7 @@ app.use("/api/upload", uploadRoutes)
 app.use("/api/contact", contactRoute)
 
 app.get("/", (req, res) => {
-    res.send("Personal web site")
+    res.send("Kemal Ozyon Personal web site")
 })
 
 const PORT = process.env.PORT || 5000
