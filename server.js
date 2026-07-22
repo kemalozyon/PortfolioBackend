@@ -5,6 +5,7 @@ import blogRoute from "./routes/blogRoutes.js"
 import projectRoute from "./routes/projectRoutes.js"
 import authRoute from "./routes/authRoutes.js"
 import uploadRoutes from "./routes/uploadRoutes.js"
+import contactRoute from "./routes/contactRoutes.js"
 import cors from "cors"
 
 // read the dotenv file
@@ -28,6 +29,7 @@ app.use("/api/blogs", blogRoute)
 app.use("/api/projects", projectRoute)
 app.use("/api/auth", authRoute)
 app.use("/api/upload", uploadRoutes)
+app.use("/api/contact", contactRoute)
 
 app.get("/", (req, res) => {
     res.send("Personal web site")
