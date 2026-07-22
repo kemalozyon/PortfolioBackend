@@ -1,4 +1,10 @@
 import nodemailer from "nodemailer"
+import dns from "node:dns"
+
+// Railway (and some other hosts) have no outbound IPv6 route, but Gmail's SMTP
+// server resolves to an IPv6 address first — which fails with
+// "connect ENETUNREACH ...:465". Preferring IPv4 avoids that dead connection.
+dns.setDefaultResultOrder("ipv4first")
 
 // A single reusable transporter. Uses a standard SMTP service (Gmail by default).
 // Set EMAIL_SERVICE to override (e.g. "outlook", "yahoo") or leave it for Gmail.
