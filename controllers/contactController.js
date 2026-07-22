@@ -7,16 +7,15 @@ export const createContact = async (req, res) => {
         const { name, email, message } = req.body
 
         // Save the message first so nothing is lost even if the email fails
-        const newContact = await Contact.create({ name, email, message })
+        await Contact.create({ name, email, message })
 
-        // Email notification is best-effort: if it fails, the message is still stored
-        try {
-            await sendContactNotification({ name, email, message })
-        } catch (mailError) {
-            console.error("Contact email failed to send:", mailError.message)
-        }
-
+        // Reply immediately — the message is safely stored. The notification email
+        // is best-effort and sent in the background, so the visitor never waits on it.
         res.status(201).json({ success: true, message: "Thanks! Your message has been sent." })
+
+        sendContactNotification({ name, email, message }).catch((mailError) => {
+            console.error("Contact email failed to send:", mailError.message)
+        })
 
     } catch (error) {
         res.status(400).json({ success: false, message: error.message })
