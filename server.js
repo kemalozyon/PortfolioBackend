@@ -11,19 +11,27 @@ import cors from "cors"
 // read the dotenv file
 dotenv.config()
 
-// connect to the database
-connectDB()
-
 const app = express()
 
 //In order to parse coming json files
 app.use(express.json())
 app.use(cors({
     origin: [
-        "https://portfolio-frontend-two-lake.vercel.app/"
+        "https://portfolio-frontend-two-lake.vercel.app"
     ],
     credentials: true
 }))
+
+// Reuse the connection and wait for it before any API handler queries MongoDB.
+app.use("/api", async (req, res, next) => {
+    try {
+        await connectDB()
+        next()
+    } catch {
+        console.error("MongoDB connection failed")
+        res.status(503).json({ message: "Database temporarily unavailable" })
+    }
+})
 
 app.use("/api/blogs", blogRoute)
 app.use("/api/projects", projectRoute)
@@ -35,8 +43,4 @@ app.get("/", (req, res) => {
     res.send("Kemal Ozyon Personal web site")
 })
 
-const PORT = process.env.PORT || 5000
-
-app.listen(PORT, () => {
-    console.log(`Server started at http://localhost:${PORT}`);
-})
+export default app
