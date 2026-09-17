@@ -17,7 +17,9 @@ const app = express()
 app.use(express.json())
 app.use(cors({
     origin: [
-        "https://portfolio-frontend-two-lake.vercel.app"
+        "https://portfolio-frontend-two-lake.vercel.app",
+        "https://www.kemalozyon.com",
+        "https://kemalozyon.com"
     ],
     credentials: true
 }))
