@@ -1,4 +1,5 @@
 import path from "node:path";
+import sharp from "sharp";
 
 const text = (value) => {
   if (typeof value === "string") return value;
@@ -12,7 +13,7 @@ const block = (value, language = "text") => {
 };
 
 // Convert saved cells only; never execute notebook code or load a kernel.
-export const readNotebook = (file) => {
+export const readNotebook = async (file) => {
   let notebook;
   try { notebook = JSON.parse(file.buffer.toString("utf8")); }
   catch { throw new Error("Invalid .ipynb JSON."); }
@@ -22,17 +23,31 @@ export const readNotebook = (file) => {
   let bytes = 0;
   const language = notebook.metadata?.language_info?.name || "python";
   const codeLanguage = typeof language === "string" && /^[a-z0-9_+-]{1,40}$/i.test(language) ? language : "text";
-  const image = (bundle) => {
-    const mime = ["image/png", "image/jpeg", "image/webp", "image/gif"].find((mime) => bundle?.[mime]);
+  const image = async (bundle) => {
+    const mime = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"].find((mime) => bundle?.[mime]);
     if (!mime) return null;
+    let buffer;
+    if (mime === "image/svg+xml") {
+      const svg = text(bundle[mime]);
+      // Graphviz's standard external DOCTYPE is harmless; entity declarations
+      // and embedded resources are not needed for computation diagrams.
+      if (Buffer.byteLength(svg) > 4 * 1024 * 1024 || /<!ENTITY|<\s*(?:script|foreignObject|image)\b|(?:href\s*=\s*["'](?!#))|@import|url\(/i.test(svg))
+        throw new Error("Unsupported SVG resources in notebook output.");
+      try {
+        buffer = await sharp(Buffer.from(svg), { density: 144, limitInputPixels: 16000000 })
+          .resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true })
+          .timeout({ seconds: 5 }).png().toBuffer();
+      } catch { throw new Error("Unable to convert notebook SVG output to PNG."); }
+    } else {
     const encoded = text(bundle[mime]).replace(/\s/g, "");
     if (!encoded || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded) || encoded.length % 4 !== 0)
       throw new Error("Invalid notebook image encoding.");
-    const buffer = Buffer.from(encoded, "base64");
+    buffer = Buffer.from(encoded, "base64");
+    }
     bytes += buffer.length;
     if (bytes > 12 * 1024 * 1024 || files.size >= 200)
       throw new Error("Notebook images exceed 12 MB or 200 files.");
-    const name = `notebook_images/image-${files.size}.${mime.split("/")[1]}`;
+    const name = `notebook_images/image-${files.size}.${mime === "image/svg+xml" ? "png" : mime.split("/")[1]}`;
     files.set(name, buffer);
     return name;
   };
@@ -42,8 +57,8 @@ export const readNotebook = (file) => {
     let source = text(cell.source);
     if (cell.cell_type === "markdown") {
       for (const [name, bundle] of Object.entries(cell.attachments || {})) {
-        const url = image(bundle);
-        if (!url) throw new Error("Notebook attachments must be raster images.");
+        const url = await image(bundle);
+        if (!url) throw new Error("Notebook attachment image format is not supported.");
         source = source.split(`attachment:${encodeURIComponent(name)}`).join(url)
           .split(`attachment:${name}`).join(url);
       }
@@ -59,7 +74,7 @@ export const readNotebook = (file) => {
         else if (output.output_type === "error")
           parts.push(block(`${text(output.ename || "Error")}: ${text(output.evalue || "")}`));
         else {
-          const url = image(output.data);
+          const url = await image(output.data);
           if (url) parts.push(`![Notebook output](${url})`);
           else if (output.data?.["text/markdown"]) parts.push(text(output.data["text/markdown"]));
           else if (output.data?.["text/plain"]) parts.push(block(text(output.data["text/plain"])));
