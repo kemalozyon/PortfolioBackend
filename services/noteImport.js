@@ -3,6 +3,7 @@ import yauzl from "yauzl";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import { visit } from "unist-util-visit";
+import { readNotebook } from "./notebookImport.js";
 
 export const MAX_UPLOAD = 4 * 1024 * 1024;
 const MAX_EXPANDED = 12 * 1024 * 1024;
@@ -18,6 +19,7 @@ const safePath = (name) => {
   return path.posix.normalize(name);
 };
 export const readImport = async (file) => {
+  if (/\.ipynb$/i.test(file.originalname)) return readNotebook(file);
   if (/\.md$/i.test(file.originalname))
     return {
       name: path.basename(file.originalname),
@@ -26,7 +28,7 @@ export const readImport = async (file) => {
     };
   if (!/\.zip$/i.test(file.originalname))
     throw new Error(
-      "Upload a .md file or a ZIP containing one Markdown file and its images.",
+      "Upload a .md, .ipynb, or ZIP containing one Markdown file and its images.",
     );
   const files = await new Promise((resolve, reject) => {
     yauzl.fromBuffer(

@@ -251,7 +251,7 @@ router.post(
   "/admin/import",
   upload.single("file"),
   wrap(async (req, res) => {
-    if (!req.file) throw bad("Choose a .md or ZIP file.");
+    if (!req.file) throw bad("Choose a .md, .ipynb or ZIP file.");
     const fields = await noteFields({ folder: req.body.folder || null });
     const note = new Note({
       ...fields,
