@@ -7,6 +7,7 @@ import authRoute from "./routes/authRoutes.js"
 import uploadRoutes from "./routes/uploadRoutes.js"
 import contactRoute from "./routes/contactRoutes.js"
 import cors from "cors"
+import noteRoute from "./routes/noteRoutes.js"
 
 // read the dotenv file
 dotenv.config()
@@ -14,7 +15,7 @@ dotenv.config()
 const app = express()
 
 //In order to parse coming json files
-app.use(express.json())
+app.use(express.json({ limit: "2mb" }))
 app.use(cors({
     origin: [
         "https://portfolio-frontend-two-lake.vercel.app",
@@ -35,6 +36,7 @@ app.use("/api", async (req, res, next) => {
     }
 })
 
+app.use("/api/notes", noteRoute)
 app.use("/api/blogs", blogRoute)
 app.use("/api/projects", projectRoute)
 app.use("/api/auth", authRoute)
@@ -44,5 +46,8 @@ app.use("/api/contact", contactRoute)
 app.get("/", (req, res) => {
     res.send("Kemal Ozyon Personal web site")
 })
+
+// Give bounded notebook/image imports enough time on Vercel.
+export const maxDuration = 60
 
 export default app
